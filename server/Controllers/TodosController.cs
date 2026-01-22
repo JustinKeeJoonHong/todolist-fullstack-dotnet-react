@@ -27,5 +27,50 @@ public class TodosController : ControllerBase
         return Ok(todo);
     }
 
-    
+    [HttpPost]
+    public ActionResult<TodoItem> Create([FromBody] CreateTodoRequest req)
+    {
+        if (string.IsNullOrWhiteSpace(req.Title))
+        {
+            return BadRequest("Title is empty");
+        };
+        
+        var todo = new TodoItem
+        {
+            Id = _nextId++,
+            Title = req.Title,
+            IsDone = false
+        };
+
+        _todos.Add(todo);
+        return CreatedAtAction(nameof(GetById), new { id = todo.Id}, todo);
+    }
+
+    [HttpPut("{id:int}")]
+    public ActionResult<TodoItem> Update(int id, [FromBody] UpdateTodoRequest req)
+    {
+        var todo = _todos.FirstOrDefault( t => t.Id == id);
+        if (todo == null) return NotFound();
+
+        if (string.IsNullOrWhiteSpace(req.Title))
+        {
+            return BadRequest("Title is empty");
+        }
+
+        todo.Title = req.Title;
+        todo.IsDone = req.IsDone;
+
+        return Ok(todo);
+    }
+
+    [HttpDelete("{id:int}")]
+    public IActionResult Delete(int id)
+    {
+        var todo = _todos.FirstOrDefault( t => t.Id == id);
+        if (todo == null) return NotFound();
+
+        _todos.Remove(todo);
+        return NoContent();
+    }
+
 }
